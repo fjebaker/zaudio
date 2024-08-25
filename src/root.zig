@@ -52,10 +52,6 @@ const CallbackHandler = struct {
                 if (self.done) return .complete;
 
                 const read = self.data_pipe.read(output);
-                if (read > 0) {
-                    logger.debug("Read {d} values from stream", .{read});
-                }
-
                 index += read;
             } else {
                 // spin the thread for a milisecond
@@ -100,7 +96,7 @@ pub const Stream = struct {
         n_channels: usize = 0,
         mono: bool = true,
         sample_rate: f64 = 44100,
-        frames_per_buffer: usize = 256,
+        frames_per_buffer: usize = 1028,
     };
 
     stream: *c.PaStream,
@@ -146,8 +142,6 @@ pub const Stream = struct {
     }
 
     fn writeData(self: *Stream, data: []const f32) !void {
-        logger.debug("Writing {d} values into audio stream", .{data.len});
-
         while (true) {
             if (self.handler.mutex.tryLock()) {
                 defer self.handler.mutex.unlock();

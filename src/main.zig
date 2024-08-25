@@ -14,7 +14,7 @@ pub fn main() !void {
     const stream = try zaudio.Stream.openDefault(allocator, .{});
     defer stream.close();
 
-    const buffer = try allocator.alloc(f32, 1028);
+    const buffer = try allocator.alloc(f32, 2056);
     defer allocator.free(buffer);
 
     var phase: f32 = 0;
@@ -22,18 +22,24 @@ pub fn main() !void {
 
     try stream.start();
 
-    for (0..10) |i| {
+    for (0..100) |i| {
         logger.debug("Dumping buffer: {d}", .{i});
         for (buffer) |*o| {
             const x = 2 * std.math.pi * phase / samp_rate;
-            o.* = 0.5 * std.math.sin(x * 440);
+            if (i > 20) {
+                o.* =
+                    0.1 * std.math.sin(x * 220) +
+                    0.1 * std.math.sin(x * 293.66) +
+                    0.1 * std.math.sin(x * 349.23);
+            } else {
+                o.* = 0.2 * std.math.sin(x * 220);
+            }
             phase += 1;
         }
         try stream.write(buffer);
     }
 
     logger.debug("All data written", .{});
-    std.time.sleep(std.time.ns_per_s);
     logger.debug("Exit", .{});
 
     try stream.stop();
